@@ -3,7 +3,7 @@
 
   "typeCheckingMode": "strict",
   "reportUnusedImport": true,
-  "pythonVersion": "3.7",
+  "pythonVersion": "3.8",
   "enableTypeIgnoreComments": true,
   "reportUnknownMemberType": "warning",
   "reportUnknownParameterType": "warning",
