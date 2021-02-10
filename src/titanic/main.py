@@ -1,10 +1,10 @@
 import pandas as pd
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.impute import SimpleImputer
-from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import GridSearchCV
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
+from xgboost import XGBClassifier
 
 numerical_transformer = SimpleImputer(strategy="constant")
 
@@ -36,22 +36,33 @@ def run():
         ]
     )
 
+    estimator = XGBClassifier(
+        learning_rate=0.05, use_label_encoder=False, eval_metric="logloss"
+    )
+    # estimator = RandomForestClassifier(max_depth=1, random_state=0)
+
     my_pipeline = Pipeline(
         steps=[
             ("preprocessor", preprocessor),
-            ("model", RandomForestClassifier(max_depth=1, random_state=0)),
+            (
+                "model",
+                estimator,
+            ),
         ]
     )
-    scores = -1 * cross_val_score(
-        my_pipeline, X, y, cv=5, scoring="neg_mean_absolute_error"
-    )
 
-    print("Average score (across experiments):")
-    print(1 - scores.mean())
+    param_grid = {"model__n_estimators": [250, 500, 1000]}
+    s = GridSearchCV(
+        my_pipeline, param_grid, cv=5, scoring="neg_mean_absolute_error"
+    ).fit(X, y)
 
-    my_pipeline.fit(X, y)
+    print("Best score:")
+    print(1 - (-1 * s.best_score_))
+    print(f"Best params:\n{s.best_params_}")
 
-    y_p = my_pipeline.predict(te[fields])
+    s.best_estimator_.fit(X, y)
+
+    y_p = s.best_estimator_.predict(te[fields])
 
     out = pd.DataFrame({"PassengerId": te["PassengerId"], "Survived": y_p})
     out.to_csv(f"{OUTPUT_DIR}/out.csv", index=False)
