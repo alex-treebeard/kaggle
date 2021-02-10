@@ -1,4 +1,10 @@
 import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.impute import SimpleImputer
+from sklearn.metrics import mean_absolute_error
+from sklearn.model_selection import train_test_split
+
+# from sklearn.pipeline import Pipeline
 
 
 def run():
@@ -14,8 +20,6 @@ def run():
         #     'Fare'
     ]
 
-    from sklearn.impute import SimpleImputer
-
     my_imputer = SimpleImputer()
 
     def get_input(dfx):
@@ -26,21 +30,19 @@ def run():
     X = get_input(tr)
     y = tr[["Survived"]]
 
-    from sklearn.model_selection import train_test_split
+    # my_pipeline = Pipeline(steps=[('preprocessor', SimpleImputer()),
+    #                           ('model', RandomForestClassifier(max_depth=1, random_state=0))
+    #                          ])
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.33, random_state=42
     )
 
-    from sklearn.ensemble import RandomForestClassifier
-
-    clf = RandomForestClassifier(max_depth=1, random_state=0)
-    clf = clf.fit(X_train, y_train)
-
-    from sklearn.metrics import mean_absolute_error
-
+    clf = RandomForestClassifier(max_depth=1, random_state=0).fit(X_train, y_train)
     y_pred = clf.predict(X_test)
-    1 - mean_absolute_error(y_test, y_pred)
+
+    test_score = 1 - mean_absolute_error(y_test, y_pred)
+    print(f"test score: {test_score}")
 
     clf_final = RandomForestClassifier(max_depth=1, random_state=0)
     clf_final.fit(X, y)
